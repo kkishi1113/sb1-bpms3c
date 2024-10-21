@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { PlusCircle, Search } from 'lucide-react'
+import { PlusCircle, Search, Moon, Sun } from 'lucide-react'
+import { useTheme } from '@/components/theme-provider'
 
 interface Shortcut {
   id: string
@@ -13,6 +14,7 @@ interface Shortcut {
 }
 
 const Dashboard: React.FC = () => {
+  const { theme, setTheme } = useTheme()
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([])
   const [newShortcut, setNewShortcut] = useState<Omit<Shortcut, 'id'>>({
     url: '',
@@ -27,6 +29,10 @@ const Dashboard: React.FC = () => {
     setNewShortcut({ url: '', favicon: '', text: '', category: '' })
   }
 
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-8">
@@ -38,39 +44,44 @@ const Dashboard: React.FC = () => {
             placeholder="検索..."
           />
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button><PlusCircle className="mr-2" /> ショートカットを追加</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>新しいショートカットを追加</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <Input
-                placeholder="URL"
-                value={newShortcut.url}
-                onChange={(e) => setNewShortcut({ ...newShortcut, url: e.target.value })}
-              />
-              <Input
-                placeholder="Favicon URL"
-                value={newShortcut.favicon}
-                onChange={(e) => setNewShortcut({ ...newShortcut, favicon: e.target.value })}
-              />
-              <Input
-                placeholder="テキスト"
-                value={newShortcut.text}
-                onChange={(e) => setNewShortcut({ ...newShortcut, text: e.target.value })}
-              />
-              <Input
-                placeholder="カテゴリ"
-                value={newShortcut.category}
-                onChange={(e) => setNewShortcut({ ...newShortcut, category: e.target.value })}
-              />
-            </div>
-            <Button onClick={handleAddShortcut}>追加</Button>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center space-x-4">
+          <Button onClick={toggleTheme} variant="outline" size="icon">
+            {theme === 'dark' ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button><PlusCircle className="mr-2" /> ショートカットを追加</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>新しいショートカットを追加</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <Input
+                  placeholder="URL"
+                  value={newShortcut.url}
+                  onChange={(e) => setNewShortcut({ ...newShortcut, url: e.target.value })}
+                />
+                <Input
+                  placeholder="Favicon URL"
+                  value={newShortcut.favicon}
+                  onChange={(e) => setNewShortcut({ ...newShortcut, favicon: e.target.value })}
+                />
+                <Input
+                  placeholder="テキスト"
+                  value={newShortcut.text}
+                  onChange={(e) => setNewShortcut({ ...newShortcut, text: e.target.value })}
+                />
+                <Input
+                  placeholder="カテゴリ"
+                  value={newShortcut.category}
+                  onChange={(e) => setNewShortcut({ ...newShortcut, category: e.target.value })}
+                />
+              </div>
+              <Button onClick={handleAddShortcut}>追加</Button>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       <div className="grid grid-cols-6 gap-4">
         {shortcuts.map((shortcut) => (
