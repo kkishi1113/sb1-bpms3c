@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,14 +11,10 @@ import {
 } from "@/components/ui/dialog";
 import { PlusCircle, Search, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
-
-interface Shortcut {
-  id: string;
-  url: string;
-  favicon: string;
-  text: string;
-  category: string;
-}
+import { addShortcut } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
+import { Shortcut } from "@/types/shortcut";
+import { getShortcuts } from "@/lib/firebase";
 
 const Dashboard: React.FC = () => {
   const { theme, setTheme } = useTheme();
@@ -29,11 +25,43 @@ const Dashboard: React.FC = () => {
     text: "",
     category: "",
   });
+  const { toast } = useToast();
 
-  const handleAddShortcut = () => {
-    const id = Date.now().toString();
-    setShortcuts([...shortcuts, { ...newShortcut, id }]);
-    setNewShortcut({ url: "", favicon: "", text: "", category: "" });
+  useEffect(() => {
+    const fetchShortcuts = async () => {
+      try {
+        const fetchedShortcuts = await getShortcuts();
+        setShortcuts(fetchedShortcuts);
+      } catch (error) {
+        console.error("Error fetching shortcuts: ", error);
+        toast({
+          title: "エラー",
+          description: "ショートカットの取得中にエラーが発生しました。",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchShortcuts();
+  }, []);
+
+  const handleAddShortcut = async () => {
+    try {
+      const id = await addShortcut(newShortcut);
+      setShortcuts([...shortcuts, { ...newShortcut, id }]);
+      setNewShortcut({ url: "", favicon: "", text: "", category: "" });
+      toast({
+        title: "ショートカットが追加されました",
+        description: "新しいショートカットがFirebaseに登録されました。",
+      });
+    } catch (error) {
+      console.error("Error adding shortcut: ", error);
+      toast({
+        title: "エラー",
+        description: "ショートカットの追加中にエラーが発生しました。",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleTheme = () => {
@@ -96,7 +124,9 @@ const Dashboard: React.FC = () => {
                 />
               </div>
               <DialogClose asChild>
-                <Button onClick={handleAddShortcut}>追加</Button>
+                <Button onClick={handleAddShortcut} type="button">
+                  追加
+                </Button>
               </DialogClose>
             </DialogContent>
           </Dialog>
@@ -108,6 +138,7 @@ const Dashboard: React.FC = () => {
             key={shortcut.id}
             href={shortcut.url}
             className="flex flex-col items-center p-4 bg-card hover:bg-accent rounded-lg transition-colors"
+            target="_blank"
           >
             <img
               src={shortcut.favicon}
