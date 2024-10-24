@@ -56,7 +56,7 @@ export const getShortcuts = async (): Promise<Shortcut[]> => {
 export const updateShortcut = async (shortcut: Shortcut) => {
   try {
     const shortcutRef = doc(db, "shortcuts", shortcut.id);
-    const { id, ...updateData } = shortcut;
+    const { ...updateData } = shortcut;
     await updateDoc(shortcutRef, updateData);
     return true;
   } catch (error) {
