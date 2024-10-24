@@ -8,13 +8,26 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { PlusCircle, Search, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
-import { addShortcut } from "@/lib/firebase";
+import {
+  addShortcut,
+  getShortcuts,
+  updateShortcut,
+  softDeleteShortcut,
+  undoDeleteShortcut,
+} from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Shortcut } from "@/types/shortcut";
-import { getShortcuts } from "@/lib/firebase";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Edit, Trash } from "lucide-react";
 
 const Dashboard: React.FC = () => {
   const { theme, setTheme } = useTheme();
@@ -24,8 +37,14 @@ const Dashboard: React.FC = () => {
     favicon: "",
     text: "",
     category: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(), // これを追加
   });
   const { toast } = useToast();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingShortcut, setEditingShortcut] = useState<Shortcut | null>(null);
+  const [editingFaviconUrl, setEditingFaviconUrl] = useState("");
+  const [newFaviconUrl, setNewFaviconUrl] = useState("");
 
   useEffect(() => {
     const fetchShortcuts = async () => {
@@ -48,8 +67,19 @@ const Dashboard: React.FC = () => {
   const handleAddShortcut = async () => {
     try {
       const id = await addShortcut(newShortcut);
-      setShortcuts([...shortcuts, { ...newShortcut, id }]);
-      setNewShortcut({ url: "", favicon: "", text: "", category: "" });
+      setShortcuts([
+        ...shortcuts,
+        { ...newShortcut, id, updatedAt: new Date().toISOString() },
+      ]);
+      setNewShortcut({
+        url: "",
+        favicon: "",
+        text: "",
+        category: "",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(), // これを追加
+      });
+      setNewFaviconUrl("");
       toast({
         title: "ショートカットが追加されました",
         description: "新しいショートカットがFirebaseに登録されました。",
@@ -58,7 +88,7 @@ const Dashboard: React.FC = () => {
       console.error("Error adding shortcut: ", error);
       toast({
         title: "エラー",
-        description: "ショートカットの追加中にエラーが発生しました。",
+        description: "ショートカットの追中にエラーが発生しました。",
         variant: "destructive",
       });
     }
@@ -66,6 +96,88 @@ const Dashboard: React.FC = () => {
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  const handleEditShortcut = (shortcut: Shortcut) => {
+    setEditingShortcut(shortcut);
+    setEditingFaviconUrl(
+      shortcut.favicon.split("url=")[1]?.split("&")[0] || ""
+    );
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editingShortcut) return;
+
+    try {
+      await updateShortcut(editingShortcut);
+      setShortcuts(
+        shortcuts.map((s) =>
+          s.id === editingShortcut.id ? editingShortcut : s
+        )
+      );
+      setIsEditDialogOpen(false);
+      toast({
+        title: "ショートカットが更新されました",
+        description: "ショートカット編集が完了しました。",
+      });
+    } catch (error) {
+      console.error("Error updating shortcut: ", error);
+      toast({
+        title: "エラー",
+        description: "ショートカットの更新中にエラーが発生しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteShortcut = async (shortcutId: string) => {
+    try {
+      await softDeleteShortcut(shortcutId);
+      // ローカルの状態を更新
+      setShortcuts(
+        shortcuts.map((s) =>
+          s.id === shortcutId ? { ...s, isDeleted: true } : s
+        )
+      );
+
+      toast({
+        title: "ショートカットが削除されました",
+        description: "ショートカットが正常に削除されました。",
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                await undoDeleteShortcut(shortcutId);
+                setShortcuts(
+                  shortcuts.map((s) =>
+                    s.id === shortcutId ? { ...s, isDeleted: false } : s
+                  )
+                );
+              } catch (error) {
+                console.error("Error undoing delete: ", error);
+                toast({
+                  title: "エラー",
+                  description: "削除の取り消しに失敗しました。",
+                  variant: "destructive",
+                });
+              }
+            }}
+          >
+            元に戻す
+          </Button>
+        ),
+      });
+    } catch (error) {
+      console.error("Error deleting shortcut: ", error);
+      toast({
+        title: "エラー",
+        description: "ショートカットの削除中にエラーが発生しました。",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -103,10 +215,15 @@ const Dashboard: React.FC = () => {
                 />
                 <Input
                   placeholder="Favicon URL"
-                  value={newShortcut.favicon}
-                  onChange={(e) =>
-                    setNewShortcut({ ...newShortcut, favicon: e.target.value })
-                  }
+                  value={newFaviconUrl}
+                  onChange={(e) => {
+                    setNewFaviconUrl(e.target.value);
+                    const faviconUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${e.target.value}&size=128`;
+                    setNewShortcut({
+                      ...newShortcut,
+                      favicon: faviconUrl,
+                    });
+                  }}
                 />
                 <Input
                   placeholder="テキスト"
@@ -133,22 +250,112 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
       <div className="grid grid-cols-6 gap-4">
-        {shortcuts.map((shortcut) => (
-          <a
-            key={shortcut.id}
-            href={shortcut.url}
-            className="flex flex-col items-center p-4 bg-card hover:bg-accent rounded-lg transition-colors"
-            target="_blank"
-          >
-            <img
-              src={shortcut.favicon}
-              alt={shortcut.text}
-              className="w-12 h-12 mb-2"
-            />
-            <span className="text-sm text-center">{shortcut.text}</span>
-          </a>
-        ))}
+        {shortcuts
+          .filter((shortcut) => !shortcut.isDeleted)
+          .map((shortcut) => (
+            <div key={shortcut.id} className="relative">
+              <a
+                href={shortcut.url}
+                className="flex flex-col items-center p-4 bg-card hover:bg-accent rounded-lg transition-colors"
+                target="_blank"
+              >
+                <img
+                  src={shortcut.favicon}
+                  alt={shortcut.text}
+                  className="w-12 h-12 mb-2"
+                />
+                <span className="text-sm text-center">{shortcut.text}</span>
+              </a>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-6 w-6 rounded-full" // サイズを小さく
+                  >
+                    <MoreVertical className="h-5 w-5" />{" "}
+                    {/* アイコンも小さく */}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem
+                    onClick={() => handleEditShortcut(shortcut)}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    <span>編集</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleDeleteShortcut(shortcut.id)}
+                  >
+                    <Trash className="mr-2 h-4 w-4" />
+                    <span>削除</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ))}
       </div>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>ショートカットを編集</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Input
+              placeholder="URL"
+              value={editingShortcut?.url || ""}
+              onChange={(e) =>
+                setEditingShortcut((prev) =>
+                  prev ? { ...prev, url: e.target.value } : null
+                )
+              }
+            />
+            <Input
+              placeholder="Favicon URL"
+              value={editingFaviconUrl}
+              onChange={(e) => {
+                setEditingFaviconUrl(e.target.value);
+                const faviconUrl = `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${e.target.value}&size=128`;
+                setEditingShortcut((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        favicon: faviconUrl,
+                      }
+                    : null
+                );
+              }}
+            />
+            <Input
+              placeholder="テキスト"
+              value={editingShortcut?.text || ""}
+              onChange={(e) =>
+                setEditingShortcut((prev) =>
+                  prev ? { ...prev, text: e.target.value } : null
+                )
+              }
+            />
+            <Input
+              placeholder="カテゴリ"
+              value={editingShortcut?.category || ""}
+              onChange={(e) =>
+                setEditingShortcut((prev) =>
+                  prev ? { ...prev, category: e.target.value } : null
+                )
+              }
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              キャンセル
+            </Button>
+            <Button onClick={handleEditSubmit}>更新</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

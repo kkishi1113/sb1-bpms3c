@@ -4,4 +4,7 @@ export interface Shortcut {
   favicon: string;
   text: string;
   category: string;
+  createdAt: string;
+  updatedAt: string;
+  isDeleted?: boolean;
 }
