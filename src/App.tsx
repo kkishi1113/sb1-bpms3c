@@ -1,6 +1,6 @@
-import { ThemeProvider } from "@/components/theme-provider";
-import Dashboard from "@/components/Dashboard";
-import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from '@/components/theme-provider';
+import Dashboard from '@/components/Dashboard/index';
+import { Toaster } from '@/components/ui/toaster';
 
 function App() {
   return (
