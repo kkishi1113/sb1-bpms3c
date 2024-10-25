@@ -146,19 +146,19 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col md:flex-row items-center space-x-0 md:space-x-4">
           <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} variant="outline" size="icon">
             {theme === 'dark' ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
           </Button>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Button onClick={() => setIsAddDialogOpen(true)} className="mt-2 md:mt-0">
             <PlusCircle className="mr-2" /> ショートカットを追加
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-4">
+      <div className="grid place-items-center grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {filteredShortcuts.map((shortcut) => (
           <ShortcutCard
             key={shortcut.id}

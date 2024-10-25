@@ -16,15 +16,15 @@ interface ShortcutCardProps {
 
 export const ShortcutCard = ({ shortcut, onEdit, onDelete }: ShortcutCardProps) => {
   return (
-    <div className="relative">
+    <div className="relative w-32 h-32">
       <a
         href={shortcut.url}
-        className="flex flex-col items-center p-4 bg-card hover:bg-accent rounded-lg transition-colors"
+        className="flex flex-col items-center justify-center p-4 bg-card hover:bg-accent rounded-lg transition-colors h-full"
         target="_blank"
         rel="noopener noreferrer"
       >
         <img src={shortcut.favicon} alt={shortcut.text} className="w-12 h-12 mb-2" />
-        <span className="text-sm text-center">{shortcut.text}</span>
+        <span className="text-sm text-center truncate w-32">{shortcut.text}</span>
       </a>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
