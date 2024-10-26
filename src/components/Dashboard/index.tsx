@@ -9,8 +9,7 @@ import { SearchBar } from './SearchBar';
 import { ShortcutCard } from './ShortcutCard';
 import { AddShortcutDialog } from './AddShortcutDialog';
 import { EditShortcutDialog } from './EditShortcutDialog';
-import { SidebarProvider, SidebarTrigger } from '../ui/sidebar';
-import { AppSidebar } from '../app-sidebar';
+
 // import VirtualTable from '../virtual-table';
 // import DynamicTableApp from '../demo/dynamic-table-app';
 
@@ -149,65 +148,57 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarTrigger />
-      <div className="container mx-auto p-20">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
-          <div className="flex flex-col md:flex-row items-center space-x-0 md:space-x-4">
-            <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} variant="outline" size="icon">
-              {theme === 'dark' ? (
-                <Sun className="h-[1.2rem] w-[1.2rem]" />
-              ) : (
-                <Moon className="h-[1.2rem] w-[1.2rem]" />
-              )}
-            </Button>
-            <Button onClick={() => setIsAddDialogOpen(true)} className="mt-2 md:mt-0">
-              <PlusCircle className="mr-2" /> ショートカットを追加
-            </Button>
-          </div>
+    <div className="container mx-auto p-20">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+        <div className="flex flex-col md:flex-row items-center space-x-0 md:space-x-4">
+          <Button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} variant="outline" size="icon">
+            {theme === 'dark' ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+          </Button>
+          <Button onClick={() => setIsAddDialogOpen(true)} className="mt-2 md:mt-0">
+            <PlusCircle className="mr-2" /> ショートカットを追加
+          </Button>
         </div>
-
-        <div className="grid place-items-center grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredShortcuts.map((shortcut) => (
-            <ShortcutCard
-              key={shortcut.id}
-              shortcut={shortcut}
-              onEdit={(shortcut) => {
-                setEditingShortcut(shortcut);
-                setEditingFaviconUrl(shortcut.favicon.split('url=')[1]?.split('&')[0] || '');
-                setIsEditDialogOpen(true);
-              }}
-              onDelete={handleDeleteShortcut}
-            />
-          ))}
-        </div>
-
-        <AddShortcutDialog
-          open={isAddDialogOpen}
-          onOpenChange={setIsAddDialogOpen}
-          newShortcut={newShortcut}
-          onShortcutChange={setNewShortcut}
-          onAdd={handleAddShortcut}
-          faviconUrl={newFaviconUrl}
-          onFaviconUrlChange={setNewFaviconUrl}
-        />
-
-        <EditShortcutDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          editingShortcut={editingShortcut}
-          onShortcutChange={setEditingShortcut}
-          onSubmit={handleEditSubmit}
-          faviconUrl={editingFaviconUrl}
-          onFaviconUrlChange={setEditingFaviconUrl}
-        />
-
-        {/* <VirtualTable /> */}
-        {/* <DynamicTableApp /> */}
       </div>
-    </SidebarProvider>
+
+      <div className="grid place-items-center grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {filteredShortcuts.map((shortcut) => (
+          <ShortcutCard
+            key={shortcut.id}
+            shortcut={shortcut}
+            onEdit={(shortcut) => {
+              setEditingShortcut(shortcut);
+              setEditingFaviconUrl(shortcut.favicon.split('url=')[1]?.split('&')[0] || '');
+              setIsEditDialogOpen(true);
+            }}
+            onDelete={handleDeleteShortcut}
+          />
+        ))}
+      </div>
+
+      <AddShortcutDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        newShortcut={newShortcut}
+        onShortcutChange={setNewShortcut}
+        onAdd={handleAddShortcut}
+        faviconUrl={newFaviconUrl}
+        onFaviconUrlChange={setNewFaviconUrl}
+      />
+
+      <EditShortcutDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        editingShortcut={editingShortcut}
+        onShortcutChange={setEditingShortcut}
+        onSubmit={handleEditSubmit}
+        faviconUrl={editingFaviconUrl}
+        onFaviconUrlChange={setEditingFaviconUrl}
+      />
+
+      {/* <VirtualTable /> */}
+      {/* <DynamicTableApp /> */}
+    </div>
   );
 };
 

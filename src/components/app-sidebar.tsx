@@ -15,32 +15,36 @@ import {
 const items = [
   {
     title: 'Home',
-    url: '#',
+    url: 'home',
     icon: Home,
   },
   {
     title: 'Inbox',
-    url: '#',
+    url: 'inbox',
     icon: Inbox,
   },
   {
     title: 'Calendar',
-    url: '#',
+    url: 'calendar',
     icon: Calendar,
   },
   {
     title: 'Search',
-    url: '#',
+    url: 'search',
     icon: Search,
   },
   {
     title: 'Settings',
-    url: '#',
+    url: 'settings',
     icon: Settings,
   },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  onMenuClick: (view: string) => void;
+}
+
+export function AppSidebar({ onMenuClick }: AppSidebarProps) {
   return (
     <Sidebar>
       <SidebarContent>
@@ -50,11 +54,11 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
+                  <SidebarMenuButton asChild onClick={() => onMenuClick(item.url)}>
+                    <button className="flex items-center gap-2 w-full">
+                      <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
-                    </a>
+                    </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
