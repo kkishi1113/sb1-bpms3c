@@ -9,6 +9,8 @@ import { SearchBar } from './SearchBar';
 import { ShortcutCard } from './ShortcutCard';
 import { AddShortcutDialog } from './AddShortcutDialog';
 import { EditShortcutDialog } from './EditShortcutDialog';
+// import VirtualTable from '../virtual-table';
+// import DynamicTableApp from '../demo/dynamic-table-app';
 
 const Dashboard: React.FC = () => {
   const { theme, setTheme } = useTheme();
@@ -192,6 +194,9 @@ const Dashboard: React.FC = () => {
         faviconUrl={editingFaviconUrl}
         onFaviconUrlChange={setEditingFaviconUrl}
       />
+
+      {/* <VirtualTable /> */}
+      {/* <DynamicTableApp /> */}
     </div>
   );
 };
