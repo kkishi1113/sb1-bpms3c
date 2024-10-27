@@ -1,5 +1,6 @@
 import { ThemeProvider } from '@/components/theme-provider';
 import Dashboard from '@/components/Dashboard/index';
+import Demo from '@/components/Demo/page';
 import { Toaster } from '@/components/ui/toaster';
 import { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from './components/ui/sidebar';
@@ -18,6 +19,7 @@ function App() {
         <SidebarTrigger />
         <main className="flex-1 overflow-auto">
           {currentView === 'home' && <Dashboard />}
+          {currentView === 'demo' && <Demo />}
           {/* Add other views here as needed */}
         </main>
         <Toaster />
