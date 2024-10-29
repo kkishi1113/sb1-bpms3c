@@ -1,8 +1,9 @@
-import { Calendar, Home, Inbox, Search, Settings, AppWindowMac } from 'lucide-react';
-
+import { Calendar, Home, Inbox, Search, Settings, AppWindowMac, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -11,6 +12,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { logout } from '@/lib/firebase'; // logout関数をインポート
 
 // Menu items.
 const items = [
@@ -60,6 +62,15 @@ export function AppSidebar({ onMenuClick }: AppSidebarProps) {
     onMenuClick(url);
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // ログアウト後の処理（例: リダイレクトなど）
+    } catch (error) {
+      console.error('ログアウトエラー:', error);
+    }
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -70,10 +81,10 @@ export function AppSidebar({ onMenuClick }: AppSidebarProps) {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild onClick={() => handleClick(item.url)}>
-                    <button className="flex items-center gap-2 w-full">
+                    <Button className="justify-start" variant="ghost">
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
-                    </button>
+                    </Button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -81,6 +92,18 @@ export function AppSidebar({ onMenuClick }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild onClick={handleLogout}>
+              <Button className="justify-start" variant="ghost">
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </Button>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
