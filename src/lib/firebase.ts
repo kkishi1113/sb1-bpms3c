@@ -1,13 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  doc,
-  updateDoc,
-} from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { Shortcut } from '@/types/shortcut';
 
 const requireEnvVar = (name: string): string => {
@@ -35,7 +28,7 @@ const db = getFirestore(app);
 // GoogleAuthProviderの設定
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
-  prompt: 'select_account'
+  prompt: 'select_account',
 });
 
 export const signInWithGoogle = async (): Promise<User | null> => {
@@ -59,7 +52,7 @@ export const logout = async () => {
 
 export const addShortcut = async (shortcut: Omit<Shortcut, 'id'>) => {
   if (!auth.currentUser) throw new Error('ログインが必要です');
-  
+
   try {
     const docRef = await addDoc(collection(db, 'shortcuts'), {
       ...shortcut,
@@ -80,12 +73,9 @@ export const getShortcuts = async (): Promise<Shortcut[]> => {
   try {
     const querySnapshot = await getDocs(collection(db, 'shortcuts'));
     return querySnapshot.docs
-      .filter(doc => doc.data().userId === auth.currentUser?.uid)
+      .filter((doc) => doc.data().userId === auth.currentUser?.uid)
       .map((doc) => ({ id: doc.id, ...doc.data() } as Shortcut))
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   } catch (error) {
     console.error('ショートカット取得エラー:', error);
     throw new Error('ショートカットの取得に失敗しました。');
