@@ -1,7 +1,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import DynamicTableApp from './dynamic-column/dynamic-table-app';
 import VirtualDataTable from './virtual-table/virtual-table';
-import DrggableColumnsComponent from './draggable-columns';
+import DraggableColumnsComponent from './draggable-columns/draggable-columns';
 const AccordionItemComponent = ({ title, children }: { title: string; children: React.ReactNode }) => {
   return (
     <AccordionItem value={title}>
@@ -25,7 +25,7 @@ export default function Demo() {
           <VirtualDataTable />
         </AccordionItemComponent>
         <AccordionItemComponent title="Draggable Columns">
-          <DrggableColumnsComponent />
+          <DraggableColumnsComponent />
         </AccordionItemComponent>
       </Accordion>
     </div>
