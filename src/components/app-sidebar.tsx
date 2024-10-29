@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 
 // Menu items.
@@ -50,6 +51,15 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ onMenuClick }: AppSidebarProps) {
+  const { toggleSidebar, isMobile } = useSidebar();
+
+  const handleClick = (url: string) => {
+    if (isMobile) {
+      toggleSidebar();
+    }
+    onMenuClick(url);
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -59,7 +69,7 @@ export function AppSidebar({ onMenuClick }: AppSidebarProps) {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild onClick={() => onMenuClick(item.url)}>
+                  <SidebarMenuButton asChild onClick={() => handleClick(item.url)}>
                     <button className="flex items-center gap-2 w-full">
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
