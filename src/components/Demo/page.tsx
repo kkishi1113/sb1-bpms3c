@@ -3,6 +3,7 @@ import DynamicTableApp from './dynamic-column/dynamic-table-app';
 import VirtualDataTable from './virtual-table/virtual-table';
 import DraggableColumnsComponent from './draggable-columns/draggable-columns';
 import DialogWithCarouselComponent from './dialog-with-carousel/dialog-with-carousel';
+import CheckboxTreeComponent from './CheckboxTree/checkbox-tree';
 const AccordionItemComponent = ({ title, children }: { title: string; children: React.ReactNode }) => {
   return (
     <AccordionItem value={title}>
@@ -30,6 +31,9 @@ export default function Demo() {
         </AccordionItemComponent>
         <AccordionItemComponent title="Dialog with Carousel">
           <DialogWithCarouselComponent />
+        </AccordionItemComponent>
+        <AccordionItemComponent title="Checkbox Tree">
+          <CheckboxTreeComponent />
         </AccordionItemComponent>
       </Accordion>
     </div>
