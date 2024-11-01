@@ -170,7 +170,7 @@ export default function CheckboxTreeComponent({
           <span className="text-sm">{node.label}</span>
         </div>
 
-        {hasChildren && isExpanded && <div>{node.children.map((child) => renderNode(child, level + 1))}</div>}
+        {hasChildren && isExpanded && <div>{node.children?.map((child) => renderNode(child, level + 1))}</div>}
       </div>
     );
   };
