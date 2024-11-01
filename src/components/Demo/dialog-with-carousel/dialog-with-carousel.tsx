@@ -11,14 +11,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
-// import Image from 'next/image';
 
 export default function DialogWithCarouselComponent() {
   const slides = [
     {
       id: 1,
       title: 'Minimalist Water Bottle',
-      description: 'Stay hydrated with our sleek, eco-friendly water bottle.',
+      description:
+        'Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.Stay hydrated with our sleek, eco-friendly water bottle.',
       image: '/placeholder.svg?height=400&width=400',
     },
     {
@@ -41,34 +41,34 @@ export default function DialogWithCarouselComponent() {
         <Button variant="outline" className="bg-white text-gray-800 hover:bg-gray-100 border-gray-300" asChild>
           <DialogTrigger>Open Product Showcase</DialogTrigger>
         </Button>
-        <DialogContent className="max-w-full w-screen h-screen p-0 m-0 bg-gradient-to-br from-gray-800 to-gray-900">
+        <DialogContent className="max-w-[90vw] w-[90vw] max-h-[90vh] h-[90vh] p-6 m-0 bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
           <DialogTitle></DialogTitle>
           <DialogDescription></DialogDescription>
-          <div className="relative w-full h-full flex items-center justify-center p-4 md:p-8">
-            <Carousel className="w-full h-full max-w-[80%] max-h-[80%]">
+          <div className="relative w-full h-full flex items-center justify-center">
+            <Carousel className="w-full h-full">
               <CarouselContent>
                 {slides.map((slide) => (
                   <CarouselItem key={slide.id}>
                     <Card className="bg-gray-700/30 backdrop-blur-md border-0 shadow-xl h-full">
-                      <CardContent className="flex flex-col md:flex-row items-center justify-center p-6 h-full">
+                      <CardContent className="flex flex-col md:flex-row items-center justify-center p-4 h-full">
                         <img
                           src={slide.image}
                           alt={slide.title}
-                          width={300}
-                          height={300}
-                          className="rounded-lg mb-4 md:mb-0 md:mr-6 object-cover"
+                          width={250}
+                          height={250}
+                          className="rounded-lg mb-4 md:mb-0 md:mr-6 object-cover w-auto h-auto max-h-[40vh]"
                         />
                         <div className="text-center md:text-left max-w-md">
-                          <h2 className="text-2xl font-bold mb-2 text-white">{slide.title}</h2>
-                          <p className="text-lg text-gray-300">{slide.description}</p>
+                          <h2 className="text-xl md:text-2xl font-bold mb-2 text-white">{slide.title}</h2>
+                          <p className="text-sm md:text-lg text-gray-300">{slide.description}</p>
                         </div>
                       </CardContent>
                     </Card>
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="left-4 md:-left-12 bg-white/10 hover:bg-white/20 text-white" />
-              <CarouselNext className="right-4 md:-right-12 bg-white/10 hover:bg-white/20 text-white" />
+              <CarouselPrevious className="left-2 md:left-4 bg-white/10 hover:bg-white/20 text-white" />
+              <CarouselNext className="right-2 md:right-4 bg-white/10 hover:bg-white/20 text-white" />
             </Carousel>
           </div>
           <Button className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white" variant="ghost" asChild>
