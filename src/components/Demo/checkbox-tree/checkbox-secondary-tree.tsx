@@ -31,11 +31,11 @@ const data = [
             children: [
               {
                 id: 'core',
-                label: 'Core Providers',
+                label: 'Core-Providers',
               },
               {
                 id: 'custom',
-                label: 'Custom Providers',
+                label: 'Custom-Providers',
               },
             ],
           },
@@ -67,11 +67,11 @@ const data = [
         children: [
           {
             id: 'development',
-            label: 'Development Settings',
+            label: 'Development-Settings',
           },
           {
             id: 'production',
-            label: 'Production Settings',
+            label: 'Production-Settings',
           },
         ],
       },
@@ -86,11 +86,11 @@ const data = [
         label: '.env',
         children: [
           {
-            id: 'staging',
+            id: '.env.staging',
             label: '.env.staging',
           },
           {
-            id: 'production',
+            id: '.env.production',
             label: '.env.production',
           },
         ],
@@ -117,169 +117,198 @@ const data = [
   },
 ];
 
+// ツリー操作に関するユーティリティ関数
+const treeUtils = {
+  // ノードとその子ノードを処理する
+  traverseNodes: (node: TreeNode, callback: (n: TreeNode) => void) => {
+    callback(node);
+    node.children?.forEach((child) => treeUtils.traverseNodes(child, callback));
+  },
+
+  // 検索クエリにマッチするノードを見つける
+  findMatchingNodes: (node: TreeNode, query: string): string[] => {
+    const matches: string[] = [];
+    treeUtils.traverseNodes(node, (n) => {
+      if (n.label.toLowerCase().includes(query.toLowerCase())) {
+        matches.push(n.id);
+      }
+    });
+    return matches;
+  },
+
+  // 親ノードを収集する
+  collectParentNodes: (node: TreeNode, targetIds: Set<string>): string[] => {
+    const parentIds = new Set<string>();
+
+    const traverse = (n: TreeNode) => {
+      if (n.children?.some((child) => targetIds.has(child.id) || parentIds.has(child.id))) {
+        parentIds.add(n.id);
+      }
+      n.children?.forEach(traverse);
+    };
+
+    traverse(node);
+    return Array.from(parentIds);
+  },
+};
+
+// ノードコンポーネント
+const TreeNode: React.FC<{
+  node: TreeNode;
+  level: number;
+  expanded: string[];
+  checked: string[];
+  secondaryChecked: string[];
+  searchQuery: string;
+  onExpand: (nodeId: string) => void;
+  onCheck: (nodeId: string, node: TreeNode) => void;
+  onSecondaryCheck: (nodeId: string, node: TreeNode) => void;
+}> = ({ node, level, expanded, checked, secondaryChecked, searchQuery, onExpand, onCheck, onSecondaryCheck }) => {
+  const hasChildren = node.children && node.children.length > 0;
+  const isExpanded = expanded.includes(node.id);
+  const isChecked = checked.includes(node.id);
+  const isMatching = searchQuery && node.label.toLowerCase().includes(searchQuery.toLowerCase());
+
+  return (
+    <div className="select-none">
+      <div
+        className={`
+          flex items-center gap-2 py-1 px-2 hover:bg-secondary/50 rounded-sm
+          ${isMatching ? 'bg-yellow-100 dark:bg-yellow-900/30' : ''}
+        `}
+        style={level > 0 ? { marginLeft: `${level * 24}px` } : undefined}
+      >
+        {hasChildren ? (
+          <button
+            onClick={() => onExpand(node.id)}
+            className="h-4 w-4 flex items-center justify-center"
+            aria-label={isExpanded ? 'フォルダを閉じる' : 'フォルダを開く'}
+          >
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </button>
+        ) : (
+          <div className="w-4" />
+        )}
+
+        {hasChildren ? (
+          <Folder className="min-size-4 size-4 text-muted-foreground" />
+        ) : (
+          <File className="min-size-4 size-4 text-muted-foreground" />
+        )}
+        <span className="text-sm">{node.label}</span>
+
+        <div className="flex items-center gap-4 ml-auto">
+          <CheckboxWithLabel
+            id={node.id}
+            label="First:"
+            checked={isChecked}
+            onChange={() => onCheck(node.id, node)}
+            aria-label={`${node.label}を選択`}
+          />
+          <CheckboxWithLabel
+            id={`${node.id}-secondary`}
+            label="Second:"
+            checked={secondaryChecked.includes(node.id)}
+            onChange={() => onSecondaryCheck(node.id, node)}
+            aria-label={`${node.label}の追加オプションを選択`}
+          />
+        </div>
+      </div>
+
+      {hasChildren && isExpanded && (
+        <div>
+          {node.children?.map((child) => (
+            <TreeNode
+              key={child.id}
+              node={child}
+              level={level + 1}
+              expanded={expanded}
+              checked={checked}
+              secondaryChecked={secondaryChecked}
+              searchQuery={searchQuery}
+              onExpand={onExpand}
+              onCheck={onCheck}
+              onSecondaryCheck={onSecondaryCheck}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// チェックボックスとラベルのコンポーネント
+const CheckboxWithLabel: React.FC<{
+  id: string;
+  label: string;
+  checked: boolean;
+  onChange: () => void;
+  'aria-label': string;
+}> = ({ id, label, checked, onChange, 'aria-label': ariaLabel }) => (
+  <div className="flex items-center space-x-2">
+    <Label htmlFor={id} className="text-sm">
+      {label}
+    </Label>
+    <Checkbox id={id} checked={checked} onCheckedChange={onChange} aria-label={ariaLabel} />
+  </div>
+);
+
+// メインコンポーネント
 export default function CheckboxSecondaryTreeComponent({ nodes = data }: CheckboxTreeProps) {
   const [expanded, setExpanded] = React.useState<string[]>([]);
   const [checked, setChecked] = React.useState<string[]>([]);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [secondaryChecked, setSecondaryChecked] = React.useState<string[]>([]);
 
-  // 検索クエリに一致するノードのIDを取得
-  const getMatchingNodeIds = React.useCallback((node: TreeNode, query: string): string[] => {
-    const matches: string[] = [];
-
-    if (node.label.toLowerCase().includes(query.toLowerCase())) {
-      matches.push(node.id);
-    }
-
-    if (node.children) {
-      node.children.forEach((child) => {
-        matches.push(...getMatchingNodeIds(child, query));
-      });
-    }
-
-    return matches;
-  }, []);
-
-  // 検索結果に基づいて展開するノードを更新
+  // 検索処理
   React.useEffect(() => {
-    if (searchQuery) {
-      const matchingIds: string[] = [];
-      nodes.forEach((node) => {
-        matchingIds.push(...getMatchingNodeIds(node, searchQuery));
-      });
+    if (!searchQuery) return;
 
-      // 一致するノードの親ノードも展開（既存の展開状態を維持）
-      const expandIds = new Set<string>(expanded); // 既存の展開状態を維持
-      const addParentNodes = (node: TreeNode, targetIds: string[]) => {
-        if (node.children) {
-          if (node.children.some((child) => targetIds.includes(child.id) || expandIds.has(child.id))) {
-            expandIds.add(node.id);
-          }
-          node.children.forEach((child) => addParentNodes(child, targetIds));
-        }
-      };
+    const matchingIds = nodes.flatMap((node) => treeUtils.findMatchingNodes(node, searchQuery));
+    const parentIds = nodes.flatMap((node) => treeUtils.collectParentNodes(node, new Set(matchingIds)));
 
-      nodes.forEach((node) => addParentNodes(node, matchingIds));
-      setExpanded([...expandIds]);
-    }
-  }, [searchQuery, nodes, getMatchingNodeIds]); // expandedを依存配列に追加
+    setExpanded([...new Set([...matchingIds, ...parentIds])]);
+  }, [searchQuery, nodes]);
 
-  const toggleExpand = (nodeId: string) => {
+  // ノード操作のハンドラー
+  const handleToggleExpand = (nodeId: string) => {
     setExpanded((prev) => (prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId]));
   };
 
-  const toggleCheck = (nodeId: string, node: TreeNode) => {
-    let newChecked = [...checked];
+  const handleToggleCheck = (nodeId: string, node: TreeNode) => {
+    setChecked((prev) => {
+      const newChecked = [...prev];
+      const isCurrentlyChecked = prev.includes(nodeId);
 
-    if (checked.includes(nodeId)) {
-      // ノードと子ノードのチェックを外す
-      const removeNodes = (n: TreeNode) => {
-        newChecked = newChecked.filter((id) => id !== n.id);
-        n.children?.forEach(removeNodes);
-      };
-      removeNodes(node);
-    } else {
-      // ノードと子ノードをチェック
-      const addNodes = (n: TreeNode) => {
-        newChecked.push(n.id);
-        n.children?.forEach(addNodes);
-      };
-      addNodes(node);
-    }
+      treeUtils.traverseNodes(node, (n) => {
+        if (isCurrentlyChecked) {
+          const index = newChecked.indexOf(n.id);
+          if (index !== -1) newChecked.splice(index, 1);
+        } else if (!newChecked.includes(n.id)) {
+          newChecked.push(n.id);
+        }
+      });
 
-    setChecked(newChecked);
+      return newChecked;
+    });
   };
 
-  // toggleSecondaryCheck関数を修正
-  const toggleSecondaryCheck = (nodeId: string, node: TreeNode) => {
-    let newSecondaryChecked = [...secondaryChecked]; // checkedではなくsecondaryCheckedを使用
+  const handleToggleSecondaryCheck = (nodeId: string, node: TreeNode) => {
+    setSecondaryChecked((prev) => {
+      const newChecked = [...prev];
+      const isCurrentlyChecked = prev.includes(nodeId);
 
-    if (secondaryChecked.includes(nodeId)) {
-      // checkedではなくsecondaryCheckedをチェック
-      // ノードと子ノードのチェックを外す
-      const removeNodes = (n: TreeNode) => {
-        newSecondaryChecked = newSecondaryChecked.filter((id) => id !== n.id);
-        n.children?.forEach(removeNodes);
-      };
-      removeNodes(node);
-    } else {
-      // ノードと子ノードをチェック
-      const addNodes = (n: TreeNode) => {
-        newSecondaryChecked.push(n.id);
-        n.children?.forEach(addNodes);
-      };
-      addNodes(node);
-    }
+      treeUtils.traverseNodes(node, (n) => {
+        if (isCurrentlyChecked) {
+          const index = newChecked.indexOf(n.id);
+          if (index !== -1) newChecked.splice(index, 1);
+        } else if (!newChecked.includes(n.id)) {
+          newChecked.push(n.id);
+        }
+      });
 
-    setSecondaryChecked(newSecondaryChecked); // checkedではなくsecondaryCheckedを更新
-  };
-
-  const renderNode = (node: TreeNode, level: number = 0) => {
-    const hasChildren = node.children && node.children.length > 0;
-    const isExpanded = expanded.includes(node.id);
-    const isChecked = checked.includes(node.id);
-    const isMatching = searchQuery && node.label.toLowerCase().includes(searchQuery.toLowerCase());
-    console.log('🐸', level);
-
-    return (
-      <div key={node.id} className="select-none ">
-        <div
-          className={`
-            flex items-center gap-2 py-1 px-2 hover:bg-secondary/50 rounded-sm
-            ${isMatching ? 'bg-yellow-100 dark:bg-yellow-900/30' : ''}
-          `}
-          style={level > 0 ? { marginLeft: `${level * 24}px` } : undefined}
-        >
-          {hasChildren ? (
-            <button
-              onClick={() => toggleExpand(node.id)}
-              className="h-4 w-4 flex items-center justify-center"
-              aria-label={isExpanded ? 'フォルダを閉じる' : 'フォルダを開く'}
-            >
-              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </button>
-          ) : (
-            <div className="w-4" />
-          )}
-
-          {hasChildren ? (
-            <Folder className="min-size-4 size-4 text-muted-foreground" />
-          ) : (
-            <File className="min-size-4 size-4 text-muted-foreground" />
-          )}
-          <span className="text-sm">{node.label}</span>
-
-          <div className="flex items-center gap-4 ml-auto">
-            {' '}
-            {/* ml-autoを追加して右寄せに */}
-            <div className="flex items-center space-x-2">
-              <Label htmlFor={`${node.id}`} className="text-sm">
-                First:
-              </Label>
-              <Checkbox
-                id={node.id}
-                checked={isChecked}
-                onCheckedChange={() => toggleCheck(node.id, node)}
-                aria-label={`${node.label}を選択`}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Label htmlFor={`${node.id}-secondary`} className="text-sm">
-                Second:
-              </Label>
-              <Checkbox
-                id={`${node.id}-secondary`}
-                checked={secondaryChecked.includes(node.id)}
-                onCheckedChange={() => toggleSecondaryCheck(node.id, node)}
-                aria-label={`${node.label}の追加オプションを選択`}
-              />
-            </div>
-          </div>
-        </div>
-
-        {hasChildren && isExpanded && <div>{node.children?.map((child) => renderNode(child, level + 1))}</div>}
-      </div>
-    );
+      return newChecked;
+    });
   };
 
   return (
@@ -294,7 +323,20 @@ export default function CheckboxSecondaryTreeComponent({ nodes = data }: Checkbo
           className="pl-8"
         />
       </div>
-      {nodes.map((node) => renderNode(node))}
+      {nodes.map((node) => (
+        <TreeNode
+          key={node.id}
+          node={node}
+          level={0}
+          expanded={expanded}
+          checked={checked}
+          secondaryChecked={secondaryChecked}
+          searchQuery={searchQuery}
+          onExpand={handleToggleExpand}
+          onCheck={handleToggleCheck}
+          onSecondaryCheck={handleToggleSecondaryCheck}
+        />
+      ))}
     </div>
   );
 }
