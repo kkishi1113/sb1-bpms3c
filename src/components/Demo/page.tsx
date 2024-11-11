@@ -5,6 +5,10 @@ import DraggableColumnsComponent from './draggable-columns/draggable-columns';
 import DialogWithCarouselComponent from './dialog-with-carousel/dialog-with-carousel';
 import CheckboxTreeComponent from './checkbox-tree/checkbox-tree';
 import CheckboxSecondaryTreeComponent from './checkbox-tree/checkbox-secondary-tree';
+import SmartCheckboxTreeComponent from './checkbox-tree/smart-checkbox-tree';
+import Checkbox17 from './checkbox-tree/others/checkbox-17/checkbox-17';
+import Checkbox17Custom from './checkbox-tree/chekcbox17-custom/checkbox17';
+import DraggablePopoverComponent from './draggable-popober';
 const AccordionItemComponent = ({ title, children }: { title: string; children: React.ReactNode }) => {
   return (
     <AccordionItem value={title}>
@@ -38,6 +42,18 @@ export default function Demo() {
         </AccordionItemComponent>
         <AccordionItemComponent title="Checkbox Secondary Tree">
           <CheckboxSecondaryTreeComponent />
+        </AccordionItemComponent>
+        <AccordionItemComponent title="Smart Checkbox Tree">
+          <SmartCheckboxTreeComponent />
+        </AccordionItemComponent>
+        <AccordionItemComponent title="Checkbox Tree 17">
+          <Checkbox17 />
+        </AccordionItemComponent>
+        <AccordionItemComponent title="Checkbox Tree 17 Custom">
+          <Checkbox17Custom />
+        </AccordionItemComponent>
+        <AccordionItemComponent title="Draggable Popover">
+          <DraggablePopoverComponent />
         </AccordionItemComponent>
       </Accordion>
     </div>

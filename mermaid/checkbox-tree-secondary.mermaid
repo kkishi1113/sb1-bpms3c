@@ -1,0 +1,36 @@
+```mermaid
+graph TD
+A[CheckboxSecondaryTreeComponent]
+A -->|状態| B[expanded]
+A -->|状態| C[checked]
+A -->|状態| D[searchQuery]
+A -->|状態| E[secondaryChecked]
+A -->|状態| F[isAllExpanded]
+
+    A -->|機能| G[toggleExpand]
+    A -->|機能| H[allToggleExpand]
+    A -->|機能| I[toggleCheck]
+    A -->|機能| J[toggleSecondaryCheck]
+    A -->|機能| K[renderNode]
+
+    L[ツリー構造]
+    L -->|ノード| M[Folder]
+    L -->|ノード| N[File]
+
+    M -->|属性| O[id]
+    M -->|属性| P[label]
+    M -->|属性| Q[children]
+
+    N -->|属性| R[id]
+    N -->|属性| S[label]
+
+    A -->|表示| L
+
+    T[UI要素]
+    T -->|入力| U[検索バー]
+    T -->|ボタン| V[全展開/折りたたみ]
+    T -->|各ノード| W[First チェックボックス]
+    T -->|各ノード| X[Second チェックボックス]
+
+    A -->|含む| T
+```
