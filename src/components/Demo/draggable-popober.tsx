@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { DndContext, useDraggable } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -18,17 +18,20 @@ function DraggablePopover({ children, className }: { children: React.ReactNode; 
     : undefined;
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={cn('cursor-move', className)}>
-      {children}
+    <div ref={setNodeRef} style={style} className={cn('bg-white rounded-md shadow-md border w-80', className)}>
+      <div {...attributes} {...listeners} className="p-4 border-b cursor-move bg-muted/50">
+        <h3 className="font-semibold">ドラッグ可能なポップオーバー</h3>
+      </div>
+      <div className="p-4">{children}</div>
     </div>
   );
 }
 
-export default function DraggablePopoverComponent() {
+export default function DraggablePopoverComponent({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [position, setPosition] = React.useState({ x: 0, y: 0 });
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { delta } = event;
     setPosition((prevPosition) => ({
       x: prevPosition.x + delta.x,
@@ -50,15 +53,7 @@ export default function DraggablePopoverComponent() {
             zIndex: 50,
           }}
         >
-          <DraggablePopover className="bg-white rounded-md shadow-md border p-4 w-80">
-            <h3 className="font-semibold mb-2">ドラッグ可能なポップオーバー</h3>
-            <p>このポップオーバー全体をドラッグして移動できます。</p>
-            <ul className="mt-2">
-              <li>アイテム 1</li>
-              <li>アイテム 2</li>
-              <li>アイテム 3</li>
-            </ul>
-          </DraggablePopover>
+          <DraggablePopover className="bg-white rounded-md shadow-md border p-4 w-80">{children}</DraggablePopover>
         </div>
       )}
     </DndContext>
