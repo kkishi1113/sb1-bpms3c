@@ -164,7 +164,7 @@ export default function SmartCheckboxTreeComponent({ nodes = data }: CheckboxTre
       nodes.forEach((node) => addParentNodes(node, matchingIds));
       setExpanded([...expandIds]);
     }
-  }, [searchQuery, nodes, getMatchingNodeIds]); // expandedを依存配列に追加
+  }, [searchQuery, nodes, getMatchingNodeIds, expanded]); // expandedを依存配列に追加
 
   const toggleExpand = (nodeId: string) => {
     setExpanded((prev) => (prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId]));
@@ -181,61 +181,63 @@ export default function SmartCheckboxTreeComponent({ nodes = data }: CheckboxTre
     setIsAllExpanded((prev) => !prev);
   };
 
+  // isFullyChecked関数を修正 - ノードとその子孫すべてがチェックされているか確認
   const isFullyChecked = (node: TreeNode): boolean => {
-    if (!node.children) return checked.includes(node.id);
-    return node.children.every(isFullyChecked);
-  };
-
-  const areAllSiblingsChecked = (node: TreeNode, parentNode: TreeNode): boolean => {
-    return parentNode.children?.every((child) => isFullyChecked(child)) || false;
-  };
-
-  const findParentNode = (nodeId: string, tree: TreeNode[]): TreeNode | null => {
-    for (const node of tree) {
-      if (node.children?.some((child) => child.id === nodeId)) {
-        return node;
-      }
-      if (node.children) {
-        const parent = findParentNode(nodeId, node.children);
-        if (parent) return parent;
-      }
+    if (!node.children) {
+      return checked.includes(node.id);
     }
-    return null;
+    return checked.includes(node.id) && node.children.every(isFullyChecked);
   };
 
+  // getAllDescendantIds関数を追加 - 子孫ノードのIDをすべて取得
+  const getAllDescendantIds = (node: TreeNode): string[] => {
+    let ids: string[] = [node.id];
+    if (node.children) {
+      node.children.forEach((child) => {
+        ids = [...ids, ...getAllDescendantIds(child)];
+      });
+    }
+    return ids;
+  };
+
+  // toggleCheck関数を修正
   const toggleCheck = (nodeId: string, node: TreeNode) => {
     let newChecked = [...checked];
-    const isCurrentlyChecked = newChecked.includes(nodeId);
+    const isCurrentlyChecked = isFullyChecked(node);
 
-    const updateNodeAndChildren = (n: TreeNode, shouldCheck: boolean) => {
-      if (shouldCheck) {
-        if (!newChecked.includes(n.id)) newChecked.push(n.id);
+    if (isCurrentlyChecked) {
+      // チェックを外す場合は、このノードと全ての子孫ノードのチェックを外す
+      const descendantIds = getAllDescendantIds(node);
+      newChecked = newChecked.filter((id) => !descendantIds.includes(id));
+    } else {
+      if (!node.children) {
+        // 末端ノードの場合は単純にチェックを追加
+        newChecked.push(node.id);
       } else {
-        newChecked = newChecked.filter((id) => id !== n.id);
+        // 親ノードの場合は、全ての子孫ノードを含めてチェック
+        const allDescendants = getAllDescendantIds(node);
+        newChecked = [...new Set([...newChecked, ...allDescendants])];
       }
-      n.children?.forEach((child) => updateNodeAndChildren(child, shouldCheck));
-    };
-
-    updateNodeAndChildren(node, !isCurrentlyChecked);
+    }
 
     // 親ノードの状態を更新
-    const updateParents = (currentNode: TreeNode) => {
+    const updateParentNodes = (currentNode: TreeNode) => {
       const parent = findParentNode(currentNode.id, nodes);
       if (parent) {
-        if (areAllSiblingsChecked(currentNode, parent)) {
-          if (!newChecked.includes(parent.id)) newChecked.push(parent.id);
+        const allChildrenFullyChecked = parent.children?.every(isFullyChecked);
+
+        if (allChildrenFullyChecked) {
+          if (!newChecked.includes(parent.id)) {
+            newChecked.push(parent.id);
+          }
         } else {
           newChecked = newChecked.filter((id) => id !== parent.id);
         }
-        updateParents(parent);
+        updateParentNodes(parent);
       }
     };
 
-    // updateParents(node);
-    nodes.map((n) => {
-      updateParents(n);
-    });
-
+    updateParentNodes(node);
     setChecked(newChecked);
   };
 
@@ -261,6 +263,19 @@ export default function SmartCheckboxTreeComponent({ nodes = data }: CheckboxTre
     }
 
     setSecondaryChecked(newSecondaryChecked); // checkedではなくsecondaryCheckedを更新
+  };
+
+  const findParentNode = (nodeId: string, tree: TreeNode[]): TreeNode | null => {
+    for (const node of tree) {
+      if (node.children?.some((child) => child.id === nodeId)) {
+        return node;
+      }
+      if (node.children) {
+        const parent = findParentNode(nodeId, node.children);
+        if (parent) return parent;
+      }
+    }
+    return null;
   };
 
   const renderNode = (node: TreeNode, level: number = 0) => {
