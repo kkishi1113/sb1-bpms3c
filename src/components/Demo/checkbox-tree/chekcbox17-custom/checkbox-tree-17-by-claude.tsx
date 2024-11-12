@@ -3,6 +3,9 @@
 import React, { useCallback, useMemo, useState, Fragment, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search, ChevronDown, ChevronRight, File, FolderOpen, FolderClosedIcon } from 'lucide-react';
 
 interface TreeNode {
   id: string;
@@ -114,17 +117,7 @@ function useCheckboxTree(initialTree: TreeNode) {
     [secondaryCheckedNodes, isSecondaryChecked]
   );
 
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(() => {
-    const expandedSet = new Set<string>();
-    const initializeExpandedNodes = (node: TreeNode) => {
-      if (node.defaultExpanded) {
-        expandedSet.add(node.id);
-      }
-      node.children?.forEach(initializeExpandedNodes);
-    };
-    initializeExpandedNodes(initialTree);
-    return expandedSet;
-  });
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
   const isExpanded = useCallback((nodeId: string) => expandedNodes.has(nodeId), [expandedNodes]);
 
@@ -149,39 +142,48 @@ function useCheckboxTree(initialTree: TreeNode) {
     [searchTerm]
   );
 
-  const hasMatchInSubtree = useCallback(
+  const hasMatchInTree = useCallback(
     (node: TreeNode): boolean => {
       if (isNodeMatched(node)) return true;
-      return node.children?.some(hasMatchInSubtree) ?? false;
+      return node.children?.some((child) => hasMatchInTree(child)) ?? false;
     },
     [isNodeMatched]
   );
 
-  const expandMatchedNodes = useCallback(
+  const updateExpandedNodes = useCallback(
     (node: TreeNode) => {
-      const newExpandedNodes = new Set(expandedNodes);
+      const newExpandedNodes = new Set<string>();
 
-      const processNode = (currentNode: TreeNode): boolean => {
-        if (!currentNode.children) return isNodeMatched(currentNode);
+      const traverse = (currentNode: TreeNode, parentIds: string[] = []) => {
+        if (hasMatchInTree(currentNode)) {
+          // 親ノードをすべて展開
+          parentIds.forEach((id) => newExpandedNodes.add(id));
 
-        const shouldExpandThis = currentNode.children.some(processNode);
-        if (shouldExpandThis) {
-          newExpandedNodes.add(currentNode.id);
+          // 子を持つノードなら展開
+          if (currentNode.children) {
+            newExpandedNodes.add(currentNode.id);
+          }
+
+          // 子ノードを処理
+          currentNode.children?.forEach((child) => {
+            traverse(child, [...parentIds, currentNode.id]);
+          });
         }
-        return shouldExpandThis || isNodeMatched(currentNode);
       };
 
-      processNode(node);
+      traverse(node);
       setExpandedNodes(newExpandedNodes);
     },
-    [expandedNodes, isNodeMatched]
+    [hasMatchInTree]
   );
 
   useEffect(() => {
     if (searchTerm) {
-      expandMatchedNodes(initialTree);
+      updateExpandedNodes(initialTree);
+    } else {
+      setExpandedNodes(new Set());
     }
-  }, [searchTerm, initialTree, expandMatchedNodes]);
+  }, [searchTerm, updateExpandedNodes]);
 
   return {
     isChecked,
@@ -193,13 +195,13 @@ function useCheckboxTree(initialTree: TreeNode) {
     searchTerm,
     setSearchTerm,
     isNodeMatched,
-    hasMatchInSubtree,
+    updateExpandedNodes,
   };
 }
 
 interface CheckboxTreeProps {
   tree: TreeNode;
-  treeState: ReturnType<typeof useCheckboxTree>; // 修正: useCheckboxTree の戻り値の型を使用
+  treeState: ReturnType<typeof useCheckboxTree>;
   renderNode: (props: {
     node: TreeNode;
     isChecked: boolean | 'indeterminate';
@@ -213,7 +215,6 @@ interface CheckboxTreeProps {
 }
 
 function CheckboxTree({ tree, treeState, renderNode }: CheckboxTreeProps) {
-  // 修正: treeState を props として受け取る
   const { isChecked, handleCheck, isSecondaryChecked, handleSecondaryCheck, isExpanded, toggleExpanded } = treeState;
 
   const renderTreeNode = (node: TreeNode): React.ReactNode => {
@@ -232,44 +233,74 @@ function CheckboxTree({ tree, treeState, renderNode }: CheckboxTreeProps) {
 
   return renderTreeNode(tree);
 }
-const initialTree: TreeNode = {
-  id: 'natural-wonders',
-  label: 'Natural Wonders',
-  defaultExpanded: true,
-  children: [
-    { id: 'mountains', label: 'Mountains', defaultChecked: true, defaultSecondaryChecked: true },
-    {
-      id: 'waterfalls',
-      label: 'Waterfalls',
-      defaultExpanded: false,
-      children: [
-        { id: 'niagara', label: 'Niagara Falls' },
-        { id: 'angel-falls', label: 'Angel Falls', defaultChecked: true, defaultSecondaryChecked: true },
-      ],
-    },
-    { id: 'grand-canyon', label: 'Grand Canyon' },
-  ],
-};
 
-export default function Checkbox17byClaude() {
-  const treeState = useCheckboxTree(initialTree); // 一度だけ useCheckboxTree を使用
-  const { searchTerm, setSearchTerm, isNodeMatched } = treeState;
+// const initialTree: TreeNode = {
+//   id: 'natural-wonders',
+//   label: 'Natural Wonders',
+//   defaultExpanded: false,
+//   children: [
+//     { id: 'mountains', label: 'Mountains', defaultChecked: false, defaultSecondaryChecked: false },
+//     {
+//       id: 'waterfalls',
+//       label: 'Waterfalls',
+//       defaultExpanded: false,
+//       children: [
+//         { id: 'niagara', label: 'Niagara Falls' },
+//         { id: 'angel-falls', label: 'Angel Falls', defaultChecked: false, defaultSecondaryChecked: false },
+//       ],
+//     },
+//     { id: 'grand-canyon', label: 'Grand Canyon' },
+//   ],
+// };
+
+export default function ImprovedCheckboxTree({ initialTree }: { initialTree: TreeNode }) {
+  const treeState = useCheckboxTree(initialTree);
+  const { searchTerm, setSearchTerm, isNodeMatched, updateExpandedNodes } = treeState;
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+
+  // Debounce search term updates
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Expand matched nodes when debounced search term changes
+  useEffect(() => {
+    if (debouncedSearchTerm) {
+      updateExpandedNodes(initialTree);
+    }
+  }, [debouncedSearchTerm, updateExpandedNodes]);
+
+  const handleSearchClear = () => {
+    setSearchTerm('');
+  };
 
   return (
-    <div className="space-y-3">
-      <div className="mb-4">
-        <input
+    <div className="space-y-1">
+      <div className="mb-4 relative">
+        <Input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search..."
-          className="w-full px-3 py-2 border rounded"
+          className="px-10"
         />
+        {searchTerm && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-1/2 -translate-y-1/2"
+            onClick={handleSearchClear}
+          >
+            ×
+          </Button>
+        )}
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
       </div>
 
       <CheckboxTree
         tree={initialTree}
-        treeState={treeState} // treeState を渡す
+        treeState={treeState}
         renderNode={({
           node,
           isChecked,
@@ -281,23 +312,36 @@ export default function Checkbox17byClaude() {
           children,
         }) => (
           <Fragment key={node.id}>
-            <div className={`flex items-center gap-2 ${isNodeMatched(node) ? 'bg-yellow-100' : ''}`}>
-              {node.children && (
-                <button onClick={onToggleExpanded} className="w-4 h-4 flex items-center justify-center">
-                  {isExpanded ? '▼' : '▶'}
-                </button>
+            <div className={`flex items-center gap-2 p-2 rounded ${isNodeMatched(node) ? 'bg-yellow-100' : ''}`}>
+              {node.children ? (
+                <>
+                  <Button variant="ghost" size="icon" onClick={onToggleExpanded} className="p-0 h-6 w-6">
+                    {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                  </Button>
+                  {isExpanded ? <FolderOpen className="size-4" /> : <FolderClosedIcon className="size-4" />}
+                </>
+              ) : (
+                <>
+                  <File className="ml-6 size-4" />
+                </>
               )}
-              {node.label}
-              <Label htmlFor={`${node.id}-primary`}>First:</Label>
-              <Checkbox id={`${node.id}-primary`} checked={isChecked} onCheckedChange={onCheckedChange} />
-              <Label htmlFor={`${node.id}-secondary`}>Secondary:</Label>
-              <Checkbox
-                id={`${node.id}-secondary`}
-                checked={isSecondaryChecked}
-                onCheckedChange={onSecondaryCheckedChange}
-              />
+              <span className="flex-grow">{node.label}</span>
+              <div className="flex items-center gap-2">
+                <Label htmlFor={`${node.id}-primary`} className="text-sm">
+                  First:
+                </Label>
+                <Checkbox id={`${node.id}-primary`} checked={isChecked} onCheckedChange={onCheckedChange} />
+                <Label htmlFor={`${node.id}-secondary`} className="text-sm">
+                  Secondary:
+                </Label>
+                <Checkbox
+                  id={`${node.id}-secondary`}
+                  checked={isSecondaryChecked}
+                  onCheckedChange={onSecondaryCheckedChange}
+                />
+              </div>
             </div>
-            {isExpanded && children && <div className="ms-6 space-y-3">{children}</div>}
+            {isExpanded && children && <div className="ml-6 space-y-1">{children}</div>}
           </Fragment>
         )}
       />
