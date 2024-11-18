@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Check, Plus, ChevronsUpDown } from 'lucide-react';
+import { Send, Plus } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,21 +7,18 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 type Message = {
@@ -86,53 +83,38 @@ type CreateGroupChatDialogProps = {
   currentUserId: string;
 };
 
-type ComboboxProps = {
+type SelectBoxProps = {
   items: { label: string; value: string }[];
   selectedItems: string[];
   onSelect: (selectedItems: string[]) => void;
   className?: string;
 };
 
-function Combobox({ items, selectedItems = [], onSelect, className }: ComboboxProps) {
-  const [open, setOpen] = useState(false);
+function SelectBox({ items, selectedItems, onSelect, className }: SelectBoxProps) {
+  const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value);
+    onSelect(selectedOptions);
+  };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn('w-full justify-between', className)}
-        >
-          {selectedItems.length > 0 ? `${selectedItems.length} selected` : 'Select items...'}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
-          <CommandInput placeholder="Search items..." />
-          <CommandEmpty>No item found.</CommandEmpty>
-          <CommandGroup>
-            {items.map((item) => (
-              <CommandItem
-                key={item.value}
-                onSelect={() => {
-                  onSelect(
-                    selectedItems.includes(item.value)
-                      ? selectedItems.filter((i) => i !== item.value)
-                      : [...selectedItems, item.value]
-                  );
-                }}
-              >
-                <Checkbox checked={selectedItems.includes(item.value)} className="mr-2" />
-                {item.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <div className={cn('w-full', className)}>
+      <label htmlFor="select-box" className="sr-only">
+        Select items
+      </label>
+      <select
+        id="select-box"
+        multiple
+        value={selectedItems}
+        onChange={handleSelectionChange}
+        className="w-full h-32 p-2 border rounded focus:outline-none"
+      >
+        {items.map((item) => (
+          <option key={item.value} value={item.value}>
+            {item.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
 
@@ -344,7 +326,7 @@ function CreateGroupChatDialog({
   useEffect(() => {
     if (isOpen) {
       setGroupName(`商品 ${selectedProducts.map((p) => p.id).join(', ')} に関するグループ`);
-      setSelectedParticipants([]);
+      setSelectedParticipants([]); // 確実に空配列で初期化
     }
   }, [isOpen, selectedProducts]);
 
@@ -352,6 +334,8 @@ function CreateGroupChatDialog({
 
   const handleCreateGroup = () => {
     onCreateGroup(groupName, selectedParticipants);
+    setGroupName('');
+    setSelectedParticipants([]);
     onClose();
   };
 
@@ -378,8 +362,12 @@ function CreateGroupChatDialog({
             <Label htmlFor="participants" className="text-right">
               参加者
             </Label>
-            <Combobox
-              items={availableUsers.map((user) => ({ label: user.name, value: user.id }))}
+
+            <SelectBox
+              items={availableUsers.map((user) => ({
+                label: user.name,
+                value: user.id,
+              }))}
               selectedItems={selectedParticipants}
               onSelect={setSelectedParticipants}
               className="col-span-3"
@@ -387,9 +375,9 @@ function CreateGroupChatDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            キャンセル
-          </Button>
+          <DialogClose asChild>
+            <Button variant="outline">キャンセル</Button>
+          </DialogClose>
           <Button onClick={handleCreateGroup} disabled={selectedParticipants.length === 0}>
             グループを作成
           </Button>
@@ -398,7 +386,6 @@ function CreateGroupChatDialog({
     </Dialog>
   );
 }
-
 export default function ChatAndDataApp() {
   const mockUsers: User[] = [
     { id: '1', name: 'Alice', avatar: '/placeholder.svg?height=40&width=40' },
@@ -475,12 +462,14 @@ export default function ChatAndDataApp() {
               />
             </aside>
             <main className="w-2/3">
-              <ChatComponent
-                chat={selectedChat}
-                onSendMessage={onSendMessage}
-                currentUserId={currentUserId}
-                users={mockUsers}
-              />
+              {selectedChat && (
+                <ChatComponent
+                  chat={selectedChat}
+                  onSendMessage={onSendMessage}
+                  currentUserId={currentUserId}
+                  users={mockUsers}
+                />
+              )}
             </main>
           </div>
         </ResizablePanel>
