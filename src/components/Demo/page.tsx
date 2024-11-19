@@ -18,6 +18,8 @@ import Checkbox17byClaude from './checkbox-tree/chekcbox17-custom/checkbox-tree-
 import ChatApp from './chat/chat-app';
 import ChatAndDataApp from './chat-and-datatable/v1/enhanced-chat-and-data-app';
 import ChatAndDataAppV2 from './chat-and-datatable/v2/chat-and-data';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import DataSearchChatTool from './tab2/data-search-chat-tool';
 
 const AccordionItemComponent = ({ title, children }: { title: string; children: React.ReactNode }) => {
   return (
@@ -114,55 +116,73 @@ export default function Demo() {
   return (
     <div className="container mx-auto p-20">
       <h1>Demo</h1>
-      <Accordion type="single" collapsible>
-        <AccordionItemComponent title="Dynamic Table">
-          <DynamicTableApp />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Virtual Table">
-          <VirtualDataTable />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Draggable Columns">
-          <DraggableColumnsComponent />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Dialog with Carousel">
-          <DialogWithCarouselComponent />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Checkbox Tree">
-          <CheckboxTreeComponent />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Checkbox Secondary Tree">
-          <CheckboxSecondaryTreeComponent />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Smart Checkbox Tree">
-          <SmartCheckboxTreeComponent />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Checkbox Tree 17">
-          <Checkbox17 />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Checkbox Tree 17 Custom">
-          <Checkbox17Custom />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Checkbox17 by Claude">
-          <Checkbox17byClaude initialTree={data} />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Checkbox Tree by Claude">
-          <CheckboxTreeByClaude nodes={sampleData} onStateChange={(states) => console.log('States updated:', states)} />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Draggable Popover">
-          <DraggablePopoverComponent>
-            <div>Children</div>
-          </DraggablePopoverComponent>
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Chat">
-          <ChatApp />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Chat & Data">
-          <ChatAndDataApp />
-        </AccordionItemComponent>
-        <AccordionItemComponent title="Chat & Data v2">
-          <ChatAndDataAppV2 />
-        </AccordionItemComponent>
-      </Accordion>
+      <Tabs defaultValue="tab1">
+        <TabsList>
+          <TabsTrigger value="tab1">Tab1</TabsTrigger>
+          <TabsTrigger value="tab2">Tab2</TabsTrigger>
+        </TabsList>
+        <TabsContent value="tab1">
+          <Accordion type="single" collapsible>
+            <AccordionItemComponent title="Dynamic Table">
+              <DynamicTableApp />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Virtual Table">
+              <VirtualDataTable />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Draggable Columns">
+              <DraggableColumnsComponent />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Dialog with Carousel">
+              <DialogWithCarouselComponent />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Checkbox Tree">
+              <CheckboxTreeComponent />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Checkbox Secondary Tree">
+              <CheckboxSecondaryTreeComponent />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Smart Checkbox Tree">
+              <SmartCheckboxTreeComponent />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Checkbox Tree 17">
+              <Checkbox17 />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Checkbox Tree 17 Custom">
+              <Checkbox17Custom />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Checkbox17 by Claude">
+              <Checkbox17byClaude initialTree={data} />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Checkbox Tree by Claude">
+              <CheckboxTreeByClaude
+                nodes={sampleData}
+                onStateChange={(states) => console.log('States updated:', states)}
+              />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Draggable Popover">
+              <DraggablePopoverComponent>
+                <div>Children</div>
+              </DraggablePopoverComponent>
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Chat">
+              <ChatApp />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Chat & Data">
+              <ChatAndDataApp />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Chat & Data v2">
+              <ChatAndDataAppV2 />
+            </AccordionItemComponent>
+          </Accordion>
+        </TabsContent>
+        <TabsContent value="tab2">
+          <Accordion type="single" collapsible>
+            <AccordionItemComponent title="Tool">
+              <DataSearchChatTool />
+            </AccordionItemComponent>
+          </Accordion>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

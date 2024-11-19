@@ -444,37 +444,18 @@ export default function ChatAndDataApp() {
     setSelectedChatId(newChat.id);
   };
 
+  const handleUserChange = (userId: string) => {
+    setCurrentUserId(userId);
+    setSelectedChatId(null); // Reset selected chat when user changes
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <header className="p-4 border-b">
         <h1 className="text-2xl font-bold">チャット & データ アプリ</h1>
       </header>
-      <ResizablePanelGroup direction="vertical" className="flex-1">
-        <ResizablePanel defaultSize={60}>
-          <div className="flex h-full">
-            <aside className="w-1/3 border-r flex flex-col" aria-label="チャット一覧">
-              <UserSelector users={mockUsers} currentUserId={currentUserId} onSelectUser={setCurrentUserId} />
-              <ChatList
-                chats={chats}
-                onSelectChat={setSelectedChatId}
-                selectedChatId={selectedChatId}
-                currentUserId={currentUserId}
-              />
-            </aside>
-            <main className="w-2/3">
-              {selectedChat && (
-                <ChatComponent
-                  chat={selectedChat}
-                  onSendMessage={onSendMessage}
-                  currentUserId={currentUserId}
-                  users={mockUsers}
-                />
-              )}
-            </main>
-          </div>
-        </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel defaultSize={40}>
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        <ResizablePanel defaultSize={50}>
           <Card className="w-full h-full flex flex-col rounded-none">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>商品データ</CardTitle>
@@ -491,6 +472,35 @@ export default function ChatAndDataApp() {
               />
             </CardContent>
           </Card>
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel defaultSize={20}>
+          <div className="flex flex-col h-full">
+            <UserSelector users={mockUsers} currentUserId={currentUserId} onSelectUser={handleUserChange} />
+            <ChatList
+              chats={chats}
+              onSelectChat={setSelectedChatId}
+              selectedChatId={selectedChatId}
+              currentUserId={currentUserId}
+            />
+          </div>
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel defaultSize={30}>
+          <div className="h-full">
+            {selectedChat ? (
+              <ChatComponent
+                chat={selectedChat}
+                onSendMessage={onSendMessage}
+                currentUserId={currentUserId}
+                users={mockUsers}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center text-muted-foreground">
+                チャットを選択してください
+              </div>
+            )}
+          </div>
         </ResizablePanel>
       </ResizablePanelGroup>
       <CreateGroupChatDialog

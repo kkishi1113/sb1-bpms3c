@@ -27,6 +27,11 @@ const items = [
     icon: AppWindowMac,
   },
   {
+    title: 'Playground',
+    url: 'playground',
+    icon: AppWindowMac,
+  },
+  {
     title: 'Inbox',
     url: 'inbox',
     icon: Inbox,
