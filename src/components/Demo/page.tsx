@@ -16,7 +16,8 @@ import {
 } from './checkbox-tree/checkbox-tree-by-claude/checkbox-tree-component';
 import Checkbox17byClaude from './checkbox-tree/chekcbox17-custom/checkbox-tree-17-by-claude';
 import ChatApp from './chat/chat-app';
-import ChatAndDataApp from './chat-and-datatable/enhanced-chat-and-data-app';
+import ChatAndDataApp from './chat-and-datatable/v1/enhanced-chat-and-data-app';
+import ChatAndDataAppV2 from './chat-and-datatable/v2/chat-and-data';
 
 const AccordionItemComponent = ({ title, children }: { title: string; children: React.ReactNode }) => {
   return (
@@ -157,6 +158,9 @@ export default function Demo() {
         </AccordionItemComponent>
         <AccordionItemComponent title="Chat & Data">
           <ChatAndDataApp />
+        </AccordionItemComponent>
+        <AccordionItemComponent title="Chat & Data v2">
+          <ChatAndDataAppV2 />
         </AccordionItemComponent>
       </Accordion>
     </div>
