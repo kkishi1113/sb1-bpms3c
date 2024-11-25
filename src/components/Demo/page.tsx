@@ -20,6 +20,7 @@ import ChatAndDataApp from './chat-and-datatable/v1/enhanced-chat-and-data-app';
 import ChatAndDataAppV2 from './chat-and-datatable/v2/chat-and-data';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import DataSearchChatTool from './tab2/data-search-chat-tool';
+import DataSearchChatToolV2 from './tab2/v2/data-search-chat-tool';
 
 const AccordionItemComponent = ({ title, children }: { title: string; children: React.ReactNode }) => {
   return (
@@ -179,6 +180,9 @@ export default function Demo() {
           <Accordion type="single" collapsible>
             <AccordionItemComponent title="Tool">
               <DataSearchChatTool />
+            </AccordionItemComponent>
+            <AccordionItemComponent title="Tool V2">
+              <DataSearchChatToolV2 />
             </AccordionItemComponent>
           </Accordion>
         </TabsContent>
