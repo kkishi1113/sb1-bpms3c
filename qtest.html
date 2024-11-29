@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRコード分割生成</title>
+</head>
+<body>
+    <h1>QRコード分割生成</h1>
+    <textarea id="textInput" placeholder="ここに2万文字までのテキストを入力してください" rows="10" style="width: 80%;"></textarea>
+    <button id="generateButton">QRコード生成</button>
+    <div id="qrcodeContainer" style="margin-top: 20px;"></div>
+
+    <script>
+        // テキストを分割し、QRコード用の2進数データに変換
+        function splitTextToBinaryChunks(text, chunkSize) {
+            const chunks = [];
+            for (let i = 0; i < text.length; i += chunkSize) {
+                const chunk = text.slice(i, i + chunkSize);
+                const binaryData = chunk
+                    .split('')
+                    .map(char => char.charCodeAt(0).toString(2).padStart(16, '0'))
+                    .join('');
+                chunks.push(binaryData);
+            }
+            return chunks;
+        }
+
+        // マトリックス生成
+        function generateQRMatrix(data, size = 21) {
+            const matrix = Array.from({ length: size }, () => Array(size).fill(0));
+            let index = 0;
+
+            for (let row = 0; row < size; row++) {
+                for (let col = 0; col < size; col++) {
+                    if (index < data.length) {
+                        matrix[row][col] = data[index] === '1' ? 1 : 0;
+                        index++;
+                    }
+                }
+            }
+            return matrix;
+        }
+
+        // QRコード描画
+        function drawQRCode(matrix, canvasSize = 300) {
+            const canvas = document.createElement('canvas');
+            canvas.width = canvas.height = canvasSize;
+            const ctx = canvas.getContext('2d');
+
+            const moduleSize = canvasSize / matrix.length;
+
+            for (let row = 0; row < matrix.length; row++) {
+                for (let col = 0; col < matrix[row].length; col++) {
+                    ctx.fillStyle = matrix[row][col] === 1 ? 'black' : 'white';
+                    ctx.fillRect(col * moduleSize, row * moduleSize, moduleSize, moduleSize);
+                }
+            }
+
+            return canvas;
+        }
+
+        // ボタンイベント
+        document.getElementById('generateButton').addEventListener('click', () => {
+            const text = document.getElementById('textInput').value;
+            if (!text) {
+                alert("テキストを入力してください！");
+                return;
+            }
+
+            if (text.length > 20000) {
+                alert("テキストは2万文字以内にしてください！");
+                return;
+            }
+
+            const chunkSize = 500; // 1チャンクの文字数
+            const binaryChunks = splitTextToBinaryChunks(text, chunkSize);
+
+            // 既存のQRコードをクリア
+            const qrContainer = document.getElementById('qrcodeContainer');
+            qrContainer.innerHTML = '';
+
+            // 各チャンクごとにQRコード生成
+            binaryChunks.forEach((binaryData, index) => {
+                const matrix = generateQRMatrix(binaryData, 100);
+                const canvas = drawQRCode(matrix);
+                const label = document.createElement('p');
+                label.textContent = `QRコード ${index + 1}/${binaryChunks.length}`;
+                qrContainer.appendChild(label);
+                qrContainer.appendChild(canvas);
+            });
+        });
+    </script>
+</body>
+</html>
